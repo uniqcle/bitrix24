@@ -5,7 +5,7 @@ $APPLICATION->SetTitle("Новая страница");
 <?php
 use Bitrix\Main\Application,
 	Bitrix\Main\Type\DateTime,
-    Bitrix\Main\Diag\Debug;
+    dBitrix\Main\Diag\Debug;
 
 $request = Application::getInstance()->getContext()->getRequest();
 $requestPage = $request->getRequestedPage();
