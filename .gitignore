@@ -24,7 +24,7 @@
 # исключаем логи
 /local/php_interface/logs/
 /local/logs/
-/local/topic_logging
+/local/topic_logging/
 
 # исключаем загружаемые файлы
 /upload/
