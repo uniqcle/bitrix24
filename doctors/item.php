@@ -1,35 +1,41 @@
 <?
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
-$APPLICATION->SetTitle("Врачи");
-?>
+$APPLICATION->SetTitle("Информация по врачу");
 
-<?php
 use Bitrix\Main\Application;
+use \Models\Lists\DoctorsPropertyValuesTable as Doctors;
+use \Models\Lists\DoctorsProceduresPropertyValuesTable as Procedures;
 
-$value = Application::getInstance()->getContext()->getRequest()->getQuery("item");
-debug($value);
+$doctorID = Application::getInstance()->getContext()->getRequest()->getQuery("item");
 
-// получение связанных моделей через registerRuntimeField
-$doctor = \Models\Lists\DoctorsPropertyValuesTable::query()
-	->setSelect([
-		'*',
-		'NAME' => 'ELEMENT.NAME',  // делаем запрос к общей таблице элементов, затем получаем название элемента
-		'PROCEDURE_' => 'PROCEDURE',
-	])
-	->setFilter(['IBLOCK_ELEMENT_ID' => $value])
-	->setOrder(['NAME' => 'desc'])
-	->registerRuntimeField( // registerRuntimeField - это метод регистрирующий новое поле на время выполнения запроса
-		null,
-		new \Bitrix\Main\Entity\ReferenceField( // ReferenceField - это виртуальное поле, связывает модели
-			'PROCEDURE',
-			\Models\Lists\DoctorsProceduresPropertyValuesTable::getEntity(),
-			['=this.PROCEDURE_ID' => 'ref.IBLOCK_ELEMENT_ID']
+function getProceduresByDoctorsID(int $doctorID){
+	// получение связанных моделей через registerRuntimeField
+	$procedures = Doctors::query()
+		->setSelect([
+			'*',
+ 			'NAME' => 'PROCEDURE.ELEMENT.NAME',
+//			'PRICE' => 'PROCEDURE.PRICE',
+			'PROCEDURE.ELEMENT'
+		])
+		->setFilter(['IBLOCK_ELEMENT_ID' => $doctorID])
+		->setOrder(['NAME' => 'desc'])
+		->registerRuntimeField( // registerRuntimeField - это метод регистрирующий новое поле на время выполнения запроса
+			null,
+			new \Bitrix\Main\Entity\ReferenceField( // ReferenceField - это виртуальное поле, связывает модели
+				'PROCEDURE',
+				Procedures::getEntity(),
+				['=this.PROCEDURE_ID' => 'ref.IBLOCK_ELEMENT_ID']
+			)
 		)
-	)
-	->fetch();
+		->fetchAll();
 
-debug($doctor);
+	return $procedures;
+}
 
+if($doctorID)
+	$procedures = getProceduresByDoctorsID($doctorID);
+
+debug($procedures);
 
 ?>
 

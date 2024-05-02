@@ -7,24 +7,31 @@ use \Models\Lists\DoctorsPropertyValuesTable as DoctorsTable;
 
 Extension::load('ui.bootstrap4');
 
-$doctors = DoctorsTable::query()
-    ->setSelect([
-            '*',
-            'NAME' => 'ELEMENT.NAME',
-            'PROFESSION' => 'SPECIALIST',
-            'PROCEDURE' => 'CUSTOM_PROP_PROCEDURE.ELEMENT.NAME',
-            'PRICE' => 'CUSTOM_PROP_PROCEDURE.PRICE'
-    ])
-    ->setOrder(['NAME' => 'desc'])
-    ->registerRuntimeField(
-            null,
-            new \Bitrix\Main\Entity\ReferenceField(
-                    'CUSTOM_PROP_PROCEDURE',
-                    \Models\Lists\DoctorsProceduresPropertyValuesTable::getEntity(),
-                    ['=this.PROCEDURE_ID' => 'ref.IBLOCK_ELEMENT_ID']
-            )
-    )
-    ->fetchAll();
+
+
+
+function getDoctors(){
+	return DoctorsTable::query()
+		->setSelect([
+			'*',
+			'NAME' => 'ELEMENT.NAME',
+			'PROFESSION' => 'SPECIALIST',
+			'PROCEDURE' => 'CUSTOM_PROP_PROCEDURE.ELEMENT.NAME',
+			'PRICE' => 'CUSTOM_PROP_PROCEDURE.PRICE'
+		])
+		->setOrder(['NAME' => 'desc'])
+		->registerRuntimeField(
+			null,
+			new \Bitrix\Main\Entity\ReferenceField(
+				'CUSTOM_PROP_PROCEDURE',
+				\Models\Lists\DoctorsProceduresPropertyValuesTable::getEntity(),
+				['=this.PROCEDURE_ID' => 'ref.IBLOCK_ELEMENT_ID']
+			)
+		)
+		->fetchAll();
+}
+
+$doctors = getDoctors();
 
 //debug($doctors);
 
