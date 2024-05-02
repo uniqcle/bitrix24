@@ -7,9 +7,6 @@ use \Models\Lists\DoctorsPropertyValuesTable as DoctorsTable;
 
 Extension::load('ui.bootstrap4');
 
-
-
-
 function getDoctors(){
 	return DoctorsTable::query()
 		->setSelect([

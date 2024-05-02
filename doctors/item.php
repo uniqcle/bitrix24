@@ -14,8 +14,8 @@ function getProceduresByDoctorsID(int $doctorID){
 		->setSelect([
 			'*',
  			'NAME' => 'PROCEDURE.ELEMENT.NAME',
-//			'PRICE' => 'PROCEDURE.PRICE',
-			'PROCEDURE.ELEMENT'
+			'PRICE' => 'PROCEDURE.PRICE',
+//			'PROCEDURE.ELEMENT'
 		])
 		->setFilter(['IBLOCK_ELEMENT_ID' => $doctorID])
 		->setOrder(['NAME' => 'desc'])
@@ -27,7 +27,7 @@ function getProceduresByDoctorsID(int $doctorID){
 				['=this.PROCEDURE_ID' => 'ref.IBLOCK_ELEMENT_ID']
 			)
 		)
-		->fetchAll();
+		->fetch();
 
 	return $procedures;
 }
