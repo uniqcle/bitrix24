@@ -4,33 +4,51 @@ $APPLICATION->SetTitle("Врачи");
 
 use Bitrix\Main\UI\Extension;
 use \Models\Lists\DoctorsPropertyValuesTable as DoctorsTable;
+use \Bitrix\Main\ObjectPropertyException,
+	\Bitrix\Main\ArgumentException,
+	\Bitrix\Main\SystemException;
 
 Extension::load('ui.bootstrap4');
 
-function getDoctors(){
-	return DoctorsTable::query()
-		->setSelect([
-			'*',
-			'NAME' => 'ELEMENT.NAME',
-			'PROFESSION' => 'SPECIALIST',
-			'PROCEDURE' => 'CUSTOM_PROP_PROCEDURE.ELEMENT.NAME',
-			'PRICE' => 'CUSTOM_PROP_PROCEDURE.PRICE'
-		])
-		->setOrder(['NAME' => 'desc'])
-		->registerRuntimeField(
-			null,
-			new \Bitrix\Main\Entity\ReferenceField(
-				'CUSTOM_PROP_PROCEDURE',
-				\Models\Lists\DoctorsProceduresPropertyValuesTable::getEntity(),
-				['=this.PROCEDURE_ID' => 'ref.IBLOCK_ELEMENT_ID']
-			)
-		)
-		->fetchAll();
+function getDoctors(): array {
+    try{
+        $arSelect = ['ID', 'IBLOCK_ID',
+                    'NAME',
+                     'SPECIALIST',
+                     'PROCEDURE_ID.ELEMENT'
+            ];
+	    $iblockId = 23;
+	    $iblock = \Bitrix\Iblock\Iblock::wakeUp($iblockId);
+	    $doctors = $iblock->getEntityDataClass()::getList(array(
+		    'select' => $arSelect,
+		    'filter' =>  ["ACTIVE" => "Y"],
+		    'order' => array("ID" => 'ASC'),
+		    //'offset' => $offset,
+		    'limit' => 20,
+		    'count_total' => true,
+	    ))->fetchCollection();
+
+	    $arResult = [];
+
+	    foreach($doctors as $doctor){
+		    $arResult[$doctor->getId()]['ID'] = $doctor->getId();
+	        $arResult[$doctor->getId()]['NAME'] = $doctor->getName();
+		    $arResult[$doctor->getId()]['SPECIALIST'] = $doctor->getSpecialist()->getValue();
+
+	        foreach($doctor->getProcedureId()->getAll() as $procedure):
+                 $arResult[$doctor->getId()]['PROCEDURE'][] = $procedure->getElement()->getName();
+             endforeach;
+        }
+
+	    return $arResult;
+
+    } catch ( ObjectPropertyException | ArgumentException | SystemException $e){
+	    $errorMsg = $e -> getMessage();
+	    debug($errorMsg);
+    }
 }
 
 $doctors = getDoctors();
-
-//debug($doctors);
 
 ?>
 
@@ -52,21 +70,24 @@ $doctors = getDoctors();
                 <th scope="col">ФИО</th>
                 <th scope="col">Профессия</th>
                 <th scope="col">Процедура</th>
-                <th scope="col">Цена</th>
             </tr>
             </thead>
             <tbody>
             <?php foreach($doctors as $doctor): ?>
             <tr>
-                <th scope="row"><?=$doctor['IBLOCK_ELEMENT_ID'];?></th>
+                <th scope="row"><?=$doctor['ID'];?></th>
                 <td>
-                    <a href="/doctors/item.php?item=<?=$doctor['IBLOCK_ELEMENT_ID'];?>">
+                    <a href="/doctors/item.php?item=<?=$doctor['ID'];?>">
                         <?=$doctor['NAME'];?>
                     </a>
                 </td>
-                <td><?=$doctor['PROFESSION'];?></td>
-                <td><?=$doctor['PROCEDURE'];?></td>
-                <td><?=$doctor['PRICE'];?></td>
+                <td><?=$doctor['SPECIALIST'];?></td>
+                <td>
+                    <?php foreach($doctor['PROCEDURE'] as $procedure): ?>
+                        <?=$procedure;?>,
+                    <?php endforeach; ?>
+                </td>
+
             </tr>
             <?php endforeach; ?>
             </tbody>
