@@ -98,8 +98,6 @@ class HospitalClientsTable extends DataManager
 			(new Reference('CONTACT', \Bitrix\CRM\ContactTable::class,
 				Join::on('this.contact_id', 'ref.ID')))
 				->configureJoinType('inner'),
-
-
 		];
 	}
 }
